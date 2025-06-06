@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>競馬予想システム - AI分析</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-predict {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-predict:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .loading {
+            display: none;
+        }
+        .horse-card {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .horse-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .probability-bar {
+            height: 30px;
+            background: linear-gradient(90deg, #28a745 0%, #ffc107 50%, #dc3545 100%);
+            border-radius: 15px;
+            position: relative;
+            margin: 10px 0;
+        }
+        .probability-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .recommendation-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .tab-content {
+            padding-top: 2rem;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+        }
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+        }
+        #recentPredictions {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <h1 class="text-center mb-0">
+                <i class="fas fa-horse"></i> 競馬予想システム
+            </h1>
+            <p class="text-center mb-0 mt-2">AI機械学習による高精度レース分析</p>
+        </div>
+    </header>
+
+    <main class="container mt-4">
+        <!-- Input Section -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">レース情報入力</h5>
+                
+                <ul class="nav nav-tabs" id="inputTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="raceid-tab" data-bs-toggle="tab" data-bs-target="#raceid" type="button">
+                            レースID
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pdf-tab" data-bs-toggle="tab" data-bs-target="#pdf" type="button">
+                            PDF アップロード
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="inputTabContent">
+                    <div class="tab-pane fade show active" id="raceid" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="raceIdInput" class="form-label">レースID</label>
+                            <input type="text" class="form-control" id="raceIdInput" placeholder="例: 202305021211">
+                            <small class="form-text text-muted">12桁のレースIDを入力してください</small>
+                        </div>
+                        <button class="btn btn-predict" onclick="predictByRaceId()">
+                            <i class="fas fa-chart-line"></i> 分析開始
+                        </button>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="pdf" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="pdfInput" class="form-label">出馬表PDF</label>
+                            <input type="file" class="form-control" id="pdfInput" accept=".pdf">
+                            <small class="form-text text-muted">JRAの出馬表PDFをアップロードしてください</small>
+                        </div>
+                        <button class="btn btn-predict" onclick="predictByPdf()">
+                            <i class="fas fa-upload"></i> PDFを分析
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="loading mt-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">分析中...</span>
+                    </div>
+                    <span class="ms-2">分析中です。しばらくお待ちください...</span>
+                </div>
+                
+                <div id="errorMessage"></div>
+                <div id="successMessage"></div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" style="display: none;">
+            <!-- Race Information -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">レース情報</h5>
+                    <div id="raceInfo"></div>
+                </div>
+            </div>
+
+            <!-- Predictions -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">予測結果</h5>
+                    <div id="predictions" class="row"></div>
+                </div>
+            </div>
+
+            <!-- Visualizations -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <div id="probabilityChart"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <div id="evChart"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <div id="radarChart"></div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">推奨馬券</h5>
+                    <div id="recommendations"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Predictions -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">最近の予測履歴</h5>
+                <div id="recentPredictions"></div>
+            </div>
+        </div>
+
+        <!-- Model Training -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">モデル管理</h5>
+                <button class="btn btn-warning" onclick="trainModels()">
+                    <i class="fas fa-brain"></i> モデル再訓練
+                </button>
+                <div id="trainingStatus"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // API Base URL
+        const API_BASE = window.location.origin;
+
+        // Show loading spinner
+        function showLoading() {
+            document.querySelector('.loading').style.display = 'block';
+            clearMessages();
+        }
+
+        // Hide loading spinner
+        function hideLoading() {
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        // Clear messages
+        function clearMessages() {
+            document.getElementById('errorMessage').innerHTML = '';
+            document.getElementById('successMessage').innerHTML = '';
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('errorMessage').innerHTML = 
+                `<div class="error-message">${message}</div>`;
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            document.getElementById('successMessage').innerHTML = 
+                `<div class="success-message">${message}</div>`;
+        }
+
+        // Predict by Race ID
+        async function predictByRaceId() {
+            const raceId = document.getElementById('raceIdInput').value.trim();
+            
+            if (!raceId) {
+                showError('レースIDを入力してください');
+                return;
+            }
+
+            showLoading();
+            
+            try {
+                const response = await axios.post(`${API_BASE}/api/predict/race_id`, {
+                    race_id: raceId
+                });
+                
+                hideLoading();
+                
+                if (response.data.success) {
+                    showSuccess('分析が完了しました');
+                    displayResults(response.data);
+                } else {
+                    showError(response.data.error || '分析中にエラーが発生しました');
+                }
+            } catch (error) {
+                hideLoading();
+                showError(error.response?.data?.error || 'サーバーエラーが発生しました');
+            }
+        }
+
+        // Predict by PDF
+        async function predictByPdf() {
+            const fileInput = document.getElementById('pdfInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('PDFファイルを選択してください');
+                return;
+            }
+
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('pdf', file);
+            
+            try {
+                const response = await axios.post(`${API_BASE}/api/predict/pdf`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                
+                hideLoading();
+                
+                if (response.data.success) {
+                    showSuccess('PDF分析が完了しました');
+                    displayResults(response.data);
+                } else {
+                    showError(response.data.error || '分析中にエラーが発生しました');
+                }
+            } catch (error) {
+                hideLoading();
+                showError(error.response?.data?.error || 'サーバーエラーが発生しました');
+            }
+        }
+
+        // Display results
+        function displayResults(data) {
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // Display race information
+            const raceInfo = data.results.race_info;
+            document.getElementById('raceInfo').innerHTML = `
+                <p><strong>レース名:</strong> ${raceInfo.race_name || 'N/A'}</p>
+                <p><strong>開催場:</strong> ${raceInfo.track || 'N/A'}</p>
+                <p><strong>距離:</strong> ${raceInfo.surface || ''}${raceInfo.distance || ''}m</p>
+                <p><strong>開催日:</strong> ${raceInfo.race_date || 'N/A'}</p>
+            `;
+            
+            // Display horse predictions
+            const predictionsHtml = data.results.horses.map((horse, index) => `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card horse-card position-relative">
+                        ${index < 3 ? `<div class="recommendation-badge">${index + 1}</div>` : ''}
+                        <div class="card-body">
+                            <h6 class="card-title">${horse.horse_number}番 ${horse.horse_name}</h6>
+                            <p class="mb-1"><small>騎手: ${horse.jockey}</small></p>
+                            <p class="mb-1"><small>オッズ: ${horse.odds}</small></p>
+                            <div class="probability-bar">
+                                <div class="probability-indicator" style="left: ${horse.win_probability}%">
+                                    ${horse.win_probability.toFixed(1)}%
+                                </div>
+                            </div>
+                            <p class="mb-1"><strong>期待値:</strong> ${horse.expected_value.toFixed(2)}</p>
+                            <p class="mb-0"><small>脚質: ${horse.running_style}</small></p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('predictions').innerHTML = predictionsHtml;
+            
+            // Display visualizations
+            if (data.visualizations.probability_chart) {
+                const probChart = JSON.parse(data.visualizations.probability_chart);
+                Plotly.newPlot('probabilityChart', probChart.data, probChart.layout);
+            }
+            
+            if (data.visualizations.ev_chart) {
+                const evChart = JSON.parse(data.visualizations.ev_chart);
+                Plotly.newPlot('evChart', evChart.data, evChart.layout);
+            }
+            
+            if (data.visualizations.radar_chart) {
+                const radarChart = JSON.parse(data.visualizations.radar_chart);
+                Plotly.newPlot('radarChart', radarChart.data, radarChart.layout);
+            }
+            
+            // Display recommendations
+            const recsHtml = data.results.recommendations.map(rec => `
+                <div class="alert alert-info">
+                    <strong>${rec.bet_type}:</strong> ${rec.horses.join(', ')} 
+                    (期待値: ${rec.expected_value.toFixed(2)})
+                </div>
+            `).join('');
+            
+            document.getElementById('recommendations').innerHTML = recsHtml || '<p>推奨馬券はありません</p>';
+        }
+
+        // Train models
+        async function trainModels() {
+            if (!confirm('モデルの再訓練を開始しますか？これには数分かかる場合があります。')) {
+                return;
+            }
+            
+            document.getElementById('trainingStatus').innerHTML = 
+                '<div class="mt-2"><div class="spinner-border spinner-border-sm"></div> 訓練中...</div>';
+            
+            try {
+                const response = await axios.post(`${API_BASE}/api/train_models`);
+                
+                if (response.data.success) {
+                    document.getElementById('trainingStatus').innerHTML = 
+                        `<div class="success-message mt-2">
+                            訓練完了！<br>
+                            分類精度: ${(response.data.classifier_accuracy * 100).toFixed(2)}%<br>
+                            回帰RMSE: ${response.data.regressor_rmse.toFixed(4)}
+                        </div>`;
+                } else {
+                    document.getElementById('trainingStatus').innerHTML = 
+                        '<div class="error-message mt-2">訓練中にエラーが発生しました</div>';
+                }
+            } catch (error) {
+                document.getElementById('trainingStatus').innerHTML = 
+                    '<div class="error-message mt-2">サーバーエラーが発生しました</div>';
+            }
+        }
+
+        // Load recent predictions
+        async function loadRecentPredictions() {
+            try {
+                const response = await axios.get(`${API_BASE}/api/recent_predictions`);
+                
+                if (response.data.success && response.data.predictions.length > 0) {
+                    const predsHtml = response.data.predictions.map(pred => `
+                        <div class="mb-2">
+                            <small>${pred.date} - ${pred.race_name} - 推奨: ${pred.recommended_horses}</small>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('recentPredictions').innerHTML = predsHtml;
+                } else {
+                    document.getElementById('recentPredictions').innerHTML = 
+                        '<p class="text-muted">予測履歴はありません</p>';
+                }
+            } catch (error) {
+                document.getElementById('recentPredictions').innerHTML = 
+                    '<p class="text-danger">履歴の読み込みに失敗しました</p>';
+            }
+        }
+
+        // Load recent predictions on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadRecentPredictions();
+        });
+    </script>
+</body>
+</html>
