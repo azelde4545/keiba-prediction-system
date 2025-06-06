@@ -1,0 +1,169 @@
+# 競馬予想システム設定ファイル
+
+# データベース設定
+database:
+  path: "./data/racing.db"
+
+# ロギング設定
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(levelname)s - %(message)s"
+  file: "./logs/racing_predictor.log"
+
+# オッズ統計設定
+odds_statistics:
+  odds_win_rates:
+    - {range: [1.0, 1.4], win_rate: 0.62, place_rate: 0.81, show_rate: 0.89, roi_win: 0.80, roi_show: 0.94}
+    - {range: [1.5, 1.9], win_rate: 0.45, place_rate: 0.66, show_rate: 0.78, roi_win: 0.76, roi_show: 0.86}
+    - {range: [2.0, 2.9], win_rate: 0.31, place_rate: 0.52, show_rate: 0.66, roi_win: 0.76, roi_show: 0.84}
+    - {range: [3.0, 3.9], win_rate: 0.23, place_rate: 0.42, show_rate: 0.56, roi_win: 0.80, roi_show: 0.83}
+    - {range: [4.0, 4.9], win_rate: 0.18, place_rate: 0.35, show_rate: 0.49, roi_win: 0.79, roi_show: 0.82}
+    - {range: [5.0, 6.9], win_rate: 0.14, place_rate: 0.28, show_rate: 0.42, roi_win: 0.79, roi_show: 0.81}
+    - {range: [7.0, 9.9], win_rate: 0.10, place_rate: 0.22, show_rate: 0.33, roi_win: 0.82, roi_show: 0.81}
+    - {range: [10.0, 14.9], win_rate: 0.07, place_rate: 0.16, show_rate: 0.26, roi_win: 0.86, roi_show: 0.81}
+    - {range: [15.0, 19.9], win_rate: 0.05, place_rate: 0.12, show_rate: 0.20, roi_win: 0.87, roi_show: 0.82}
+    - {range: [20.0, 29.9], win_rate: 0.03, place_rate: 0.09, show_rate: 0.16, roi_win: 0.81, roi_show: 0.82}
+    - {range: [30.0, 49.9], win_rate: 0.02, place_rate: 0.06, show_rate: 0.11, roi_win: 0.80, roi_show: 0.82}
+    - {range: [50.0, 99.9], win_rate: 0.01, place_rate: 0.03, show_rate: 0.06, roi_win: 0.74, roi_show: 0.78}
+    - {range: [100.0, 999.0], win_rate: 0.001, place_rate: 0.01, show_rate: 0.02, roi_win: 0.41, roi_show: 0.54}
+  detailed_win_rates_enabled: true
+
+# PDF抽出設定
+pdf_extractor:
+  cache_dir: "./cache/pdf"
+  use_pdfminer: true
+  use_tabula: true
+  validation:
+    required_fields: ['race_name', 'race_date', 'track', 'race_number', 'surface', 'distance']
+    validation_checks: 3
+    min_horses: 3
+    max_horses: 30
+    value_ranges:
+      weight: [40.0, 70.0]
+      horse_weight: [300, 700]
+      age: [2, 15]
+  patterns:
+    race_name: "([^\\s]+(?:ステークス|ハンデキャップ|カップ|賞|オープン|記念|ダービー|オークス|特別|新馬戦|未勝利戦))\\s*(?:〔|\\[)?(G[ⅠⅡⅢi1-3]|OP|L(?:isted)?)(?:\\]|〕)?"
+    race_date: "(\\d{4}年\\s?\\d{1,2}月\\s?\\d{1,2}日)\\s*\\(?[日月火水木金土]\\)?"
+    track_race: "(?:(\\d+)回)?\\s*(東京|中山|京都|阪神|中京|小倉|新潟|福島|函館|札幌)\\s*(?:(\\d+)日目)?\\s*第?(\\d{1,2})\\s*競走(?:\\s*\\(?(\\d{1,2}R)\\)?)?"
+    course: "(芝|ダート|障)\\s*(?:(?:左|右|直線|外|内)\\s*)?(\\d{3,})m"
+    conditions: "(?:天候\\s*：\\s*(\\S+)|馬場\\s*：\\s*(\\S+))\\s*(?:天候\\s*：\\s*(\\S+)|馬場\\s*：\\s*(\\S+))"
+    start_time: "発走(?:時刻)?\\s*(\\d{1,2}:\\d{2})"
+    grade_alt: "\\((G[ⅠⅡⅢi1-3]|OP|L)\\)"
+  table_keywords:
+    required: ['馬番', '馬名']
+    optional: ['騎手', '斤量']
+  tabula_options:
+    - {lattice: true, multiple_tables: true, pages: 'all', pandas_options: {header: null}}
+    - {stream: true, multiple_tables: true, pages: 'all', pandas_options: {header: null}}
+    - {stream: true, guess: true, multiple_tables: true, pages: 'all', pandas_options: {header: null}}
+
+# 分析エンジン設定
+analyzer:
+  weights:
+    running_style_fit: 0.30
+    track_surface: 0.18
+    distance_fit: 0.18
+    track_fit: 0.14
+    recent_performance: 0.12
+    track_condition_fit: 0.05
+    jockey: 0.05
+    pedigree: 0.02
+    form: 0.08
+  distance_categories:
+    芝:
+      short: 1399
+      mile: 1899
+      middle: 2299
+      mid_long: 2799
+      long: 9999
+    ダート:
+      short: 1399
+      mile: 1899
+      middle: 2299
+      mid_long: 2799
+      long: 9999
+  pedigree_keywords_path: './config/pedigree_keywords.json'
+  top_jockeys: ['武豊', 'ルメール', '川田 将雅', '福永 祐一', 'デムーロ', '戸崎 圭太', '池添 謙一']
+  recent_performance_races: 5
+  recent_performance_weights: [0.4, 0.25, 0.15, 0.1, 0.1]
+  jockey_stats_days: 365
+  form_ideal_interval: [28, 42]
+  evaluation_defaults:
+    surface_fit: 60.0
+    distance_fit: 60.0
+    track_condition_fit: 60.0
+    recent_performance: 50.0
+    jockey: 50.0
+    pedigree: 60.0
+    form: 60.0
+    speed: 60.0
+    stamina: 60.0
+    running_style_fit: 60.0
+    competitiveness: 60.0
+    final_score: 50.0
+  running_style:
+    corner_history_limit: 5
+    avg_horse_count_for_style: 14
+    style_thresholds:
+      front: 2
+      stalker: 0.25
+      mid: 0.6
+    speed_sires: ['キングカメハメハ', 'ダイワメジャー', 'ロードカナロア', 'クロフネ']
+    stamina_sires: ['ディープインパクト', 'ステイゴールド', 'ハーツクライ']
+  race_development:
+    base_last_3f_time:
+      芝:
+        short: 33.5
+        mile: 34.0
+        middle: 35.0
+        mid_long: 35.5
+        long: 36.0
+      ダート:
+        short: 35.0
+        mile: 35.5
+        middle: 36.5
+        mid_long: 37.0
+        long: 38.0
+    track_condition_factor:
+      良: 0.0
+      稍重: 0.3
+      重: 0.6
+      不良: 1.0
+    pace_lap_factor:
+      high: [-0.8, 0.8]
+      medium: [0.0, 0.0]
+      slow: [0.8, -0.5]
+  prediction:
+    baseline_probability: 0.01
+    upset_normalization_factor: 0.5
+    ml_integration_weight: 0.3
+    relative_adjustment_factor: 0.2
+    probability_temperature: 20.0
+  internet_features:
+    enabled: true
+    use_simulated_data: false
+    enable_jockey_form: true
+    enable_horse_training: true
+    enable_track_bias: true
+
+# 機械学習モデルパス
+model_paths:
+  classifier: './models/rf_classifier.joblib'
+  regressor: './models/gb_regressor.joblib'
+  scaler: './models/scaler.joblib'
+  feature_columns: './models/feature_columns.json'
+
+# 表示フォーマット設定
+formatting:
+  recommend_top_n: 5
+  bet_suggest_top_n: 3
+  table_format: 'grid'
+
+# Web検索設定
+web_scraper:
+  cache_dir: './cache/web'
+  min_delay: 1.0
+  max_delay: 3.0
+  cache_expiry: 86400
+  use_cache: true
