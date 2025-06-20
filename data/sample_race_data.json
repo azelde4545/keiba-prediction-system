@@ -1,0 +1,162 @@
+{
+  "sample_races": [
+    {
+      "race_id": "202506210101",
+      "race_name": "統合分析テスト特別",
+      "race_date": "2025-06-21",
+      "track": "東京",
+      "surface": "芝",
+      "distance": 1600,
+      "condition": "良",
+      "weather": "晴",
+      "class": "3勝クラス",
+      "horses": [
+        {
+          "horse_number": 1,
+          "horse_name": "本命馬",
+          "jockey": "C.ルメール",
+          "weight": 56,
+          "odds": 2.8,
+          "popularity": 1,
+          "father": "ディープインパクト",
+          "mother_father": "サンデーサイレンス",
+          "recent_results": [
+            {
+              "date": "2025-05-21",
+              "place": "東京",
+              "distance": 1600,
+              "surface": "芝",
+              "condition": "良",
+              "result": 2,
+              "popularity": 1,
+              "jockey": "C.ルメール"
+            },
+            {
+              "date": "2025-04-15",
+              "place": "中山",
+              "distance": 1800,
+              "surface": "芝",
+              "condition": "良",
+              "result": 1,
+              "popularity": 2,
+              "jockey": "C.ルメール"
+            }
+          ]
+        },
+        {
+          "horse_number": 2,
+          "horse_name": "対抗馬",
+          "jockey": "武豊",
+          "weight": 56,
+          "odds": 5.2,
+          "popularity": 3,
+          "father": "キングカメハメハ",
+          "mother_father": "フジキセキ",
+          "recent_results": [
+            {
+              "date": "2025-05-21",
+              "place": "東京",
+              "distance": 1600,
+              "surface": "芝",
+              "condition": "良",
+              "result": 3,
+              "popularity": 4,
+              "jockey": "武豊"
+            },
+            {
+              "date": "2025-04-08",
+              "place": "阪神",
+              "distance": 1400,
+              "surface": "芝",
+              "condition": "良",
+              "result": 1,
+              "popularity": 7,
+              "jockey": "武豊"
+            }
+          ]
+        },
+        {
+          "horse_number": 3,
+          "horse_name": "狙い馬",
+          "jockey": "戸崎圭太",
+          "weight": 55,
+          "odds": 12.5,
+          "popularity": 6,
+          "father": "ハーツクライ",
+          "mother_father": "トニービン",
+          "recent_results": [
+            {
+              "date": "2025-05-14",
+              "place": "新潟",
+              "distance": 1600,
+              "surface": "芝",
+              "condition": "良",
+              "result": 4,
+              "popularity": 8,
+              "jockey": "戸崎圭太"
+            },
+            {
+              "date": "2025-04-22",
+              "place": "東京",
+              "distance": 1800,
+              "surface": "芝",
+              "condition": "稍重",
+              "result": 2,
+              "popularity": 9,
+              "jockey": "戸崎圭太"
+            }
+          ]
+        },
+        {
+          "horse_number": 4,
+          "horse_name": "穴馬",
+          "jockey": "M.デムーロ",
+          "weight": 55,
+          "odds": 18.0,
+          "popularity": 8,
+          "father": "ステイゴールド",
+          "mother_father": "Blushing Groom",
+          "recent_results": [
+            {
+              "date": "2025-05-07",
+              "place": "東京",
+              "distance": 1800,
+              "surface": "芝",
+              "condition": "良",
+              "result": 5,
+              "popularity": 10,
+              "jockey": "M.デムーロ"
+            },
+            {
+              "date": "2025-04-01",
+              "place": "中山",
+              "distance": 2000,
+              "surface": "芝",
+              "condition": "重",
+              "result": 3,
+              "popularity": 12,
+              "jockey": "M.デムーロ"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "test_scenarios": [
+    {
+      "scenario_name": "最小指示テスト",
+      "user_input": "予想して",
+      "expected_behavior": "自動的に今日のレース情報を検索し、統合予想システムで分析"
+    },
+    {
+      "scenario_name": "戦略指定テスト",
+      "user_input": "穴馬で高配当狙い",
+      "expected_behavior": "Premium Zone (10-20倍) を優先した予想"
+    },
+    {
+      "scenario_name": "安全志向テスト",
+      "user_input": "堅実に複勝で",
+      "expected_behavior": "Good Zone重視、複勝率統計ベースの予想"
+    }
+  ]
+}

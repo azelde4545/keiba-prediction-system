@@ -1,42 +1,58 @@
-# 基本パッケージ
-numpy>=1.20.0
-pandas>=1.2.0
+# 競馬予想システム必要ライブラリ
+
+# 基本ライブラリ
+numpy>=1.21.0
+pandas>=1.3.0
+scipy>=1.7.0
+
+# 機械学習
 scikit-learn>=1.0.0
+lightgbm>=3.2.0
+xgboost>=1.5.0
 
 # PDF処理
-PyPDF2>=3.0.0
-pdfminer.six>=20201018
-tabula-py>=2.0.5
-camelot-py[cv]>=0.10.1
-pdfplumber>=0.7.3
+PyPDF2>=2.10.0
+pdfplumber>=0.6.0
 
-# データ保存・設定
-joblib>=1.1.0
-pyyaml>=6.0
-python-dotenv>=0.20.0
-
-# 表示・ユーティリティ
-tabulate>=0.9.0
-tqdm>=4.64.0
-
-# Web検索・スクレイピング
+# Web関連
 requests>=2.28.0
-beautifulsoup4>=4.10.0
-lxml>=4.6.0
+beautifulsoup4>=4.11.0
+selenium>=4.0.0
 
-# テスト・開発ツール
+# データ保存・読み込み
+joblib>=1.1.0
+pickle5>=0.0.12
+
+# 日付・時間処理
+python-dateutil>=2.8.0
+pytz>=2021.3
+
+# 並列処理
+multiprocessing-logging>=0.3.0
+concurrent-futures>=3.1.1
+
+# 設定ファイル処理
+PyYAML>=6.0
+configparser>=5.2.0
+
+# ログ出力
+loguru>=0.6.0
+
+# 数学計算
+sympy>=1.9
+
+# 非同期処理
+aiohttp>=3.8.0
+aiofiles>=0.8.0
+
+# グラフ描画（オプション）
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.0.0
+
+# 開発・テスト用
 pytest>=7.0.0
-pytest-cov>=4.0.0
-coverage>=7.0.0
-pytest-mock>=3.10.0
-
-# 型チェック（オプション）
-mypy>=1.0.0
-types-requests>=2.28.0
-types-PyYAML>=6.0.0
-
-# コード品質ツール（オプション）
-black>=23.0.0
-flake8>=6.0.0
-isort>=5.12.0
-pylint>=2.16.0
+pytest-asyncio>=0.20.0
+black>=22.0.0
+flake8>=4.0.0
+mypy>=0.910
